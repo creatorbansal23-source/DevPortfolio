@@ -1,0 +1,213 @@
+import React, { useState } from 'react';
+import axios from 'axios';
+import { motion } from 'framer-motion';
+import { Github, Mail, MapPin, Send, Check, AlertCircle } from 'lucide-react';
+
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
+export default function Contact() {
+  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
+  const [state, setState] = useState({ loading: false, status: null, error: null });
+
+  const update = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setState({ loading: true, status: null, error: null });
+    try {
+      await axios.post(`${API}/contact`, form);
+      setState({ loading: false, status: 'success', error: null });
+      setForm({ name: '', email: '', subject: '', message: '' });
+    } catch (err) {
+      const msg =
+        err?.response?.data?.detail?.[0]?.msg ||
+        err?.response?.data?.detail ||
+        'Could not send. Please try again or email directly.';
+      setState({ loading: false, status: 'error', error: String(msg) });
+    }
+  };
+
+  return (
+    <section
+      id="contact"
+      data-testid="contact-section"
+      className="relative"
+    >
+      <div className="max-w-[1600px] mx-auto px-6 md:px-12 lg:px-20 py-20 md:py-32">
+        <div className="grid grid-cols-12 gap-10">
+          <div className="col-span-12 lg:col-span-6">
+            <p className="mono-label text-accent">[ 06 / Contact ]</p>
+            <h2 className="mt-6 font-display font-extrabold text-white text-5xl md:text-8xl tracking-tightest leading-[0.9]">
+              LET'S <br />
+              BUILD<span className="text-accent">.</span>
+            </h2>
+            <p className="mt-6 text-white/65 max-w-lg text-lg">
+              Open to senior backend / cloud / AI-engineering roles, contract work,
+              or a quick chat about architecture. Replies within 24 hours.
+            </p>
+
+            <div className="mt-10 space-y-5">
+              <a
+                data-testid="contact-email-link"
+                href="mailto:deepak23bansal1997@gmail.com"
+                className="flex items-center gap-4 group"
+              >
+                <Mail size={18} className="text-accent" />
+                <span className="text-white text-lg group-hover:text-accent transition-colors">
+                  deepak23bansal1997@gmail.com
+                </span>
+              </a>
+              <a
+                data-testid="contact-github-link"
+                href="https://github.com/creatorbansal23-source"
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-4 group"
+              >
+                <Github size={18} className="text-accent" />
+                <span className="text-white text-lg group-hover:text-accent transition-colors">
+                  github.com/creatorbansal23-source
+                </span>
+              </a>
+              <div className="flex items-center gap-4">
+                <MapPin size={18} className="text-accent" />
+                <span className="text-white text-lg">New Delhi, India</span>
+              </div>
+            </div>
+
+            <div className="mt-12 border-t hairline pt-8 grid grid-cols-2 gap-px bg-line">
+              <div className="bg-ink p-5">
+                <div className="mono-label">Response time</div>
+                <div className="mt-2 font-display text-white text-2xl">{'< 24h'}</div>
+              </div>
+              <div className="bg-ink p-5">
+                <div className="mono-label">Availability</div>
+                <div className="mt-2 font-display text-white text-2xl">Open</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-span-12 lg:col-span-6">
+            <form
+              onSubmit={submit}
+              data-testid="contact-form"
+              className="border hairline p-6 md:p-10 bg-[#0a0a0a]"
+            >
+              <div className="mono-label mb-8 text-white/60">
+                // contact.submit() — secured · stored · acknowledged
+              </div>
+
+              <div className="space-y-6">
+                <Field
+                  label="Name"
+                  testid="contact-form-name"
+                  value={form.name}
+                  onChange={update('name')}
+                  required
+                />
+                <Field
+                  label="Email"
+                  testid="contact-form-email"
+                  type="email"
+                  value={form.email}
+                  onChange={update('email')}
+                  required
+                />
+                <Field
+                  label="Subject"
+                  testid="contact-form-subject"
+                  value={form.subject}
+                  onChange={update('subject')}
+                />
+                <Field
+                  label="Message"
+                  testid="contact-form-message"
+                  textarea
+                  value={form.message}
+                  onChange={update('message')}
+                  required
+                />
+              </div>
+
+              <button
+                data-testid="contact-submit"
+                type="submit"
+                disabled={state.loading}
+                className="mt-8 w-full inline-flex items-center justify-center gap-2 px-6 py-4 bg-white text-ink font-medium hover:bg-accent hover:text-white transition-colors disabled:opacity-50"
+              >
+                {state.loading ? (
+                  'Sending…'
+                ) : (
+                  <>
+                    <Send size={16} /> Send message
+                  </>
+                )}
+              </button>
+
+              {state.status === 'success' && (
+                <motion.div
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  data-testid="contact-success"
+                  className="mt-5 flex items-center gap-3 border hairline p-4 text-white"
+                >
+                  <Check size={16} className="text-accent" />
+                  <span className="text-sm">
+                    Message received. I'll get back within 24 hours.
+                  </span>
+                </motion.div>
+              )}
+              {state.status === 'error' && (
+                <motion.div
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  data-testid="contact-error"
+                  className="mt-5 flex items-center gap-3 border border-accent p-4 text-white"
+                >
+                  <AlertCircle size={16} className="text-accent" />
+                  <span className="text-sm">{state.error}</span>
+                </motion.div>
+              )}
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <footer className="border-t hairline">
+        <div className="max-w-[1600px] mx-auto px-6 md:px-12 lg:px-20 py-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mono-label">
+          <div>© {new Date().getFullYear()} Deepak Bansal. Built with React Three Fiber.</div>
+          <div className="text-white/40">v1.0 · Production · 99.9% uptime</div>
+        </div>
+      </footer>
+    </section>
+  );
+}
+
+function Field({ label, testid, value, onChange, type = 'text', textarea, required }) {
+  return (
+    <label className="block">
+      <span className="mono-label">{label}{required && <span className="text-accent ml-1">*</span>}</span>
+      {textarea ? (
+        <textarea
+          data-testid={testid}
+          value={value}
+          onChange={onChange}
+          required={required}
+          rows={5}
+          className="mt-2 w-full bg-ink border hairline px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-accent transition-colors font-body resize-none"
+          placeholder="Tell me about the role, project, or idea…"
+        />
+      ) : (
+        <input
+          data-testid={testid}
+          type={type}
+          value={value}
+          onChange={onChange}
+          required={required}
+          className="mt-2 w-full bg-ink border hairline px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-accent transition-colors font-body"
+          placeholder={label}
+        />
+      )}
+    </label>
+  );
+}
