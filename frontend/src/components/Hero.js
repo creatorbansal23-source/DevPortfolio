@@ -4,11 +4,29 @@ import { ArrowDown, Github, Mail } from 'lucide-react';
 import HeroScene from '../three/HeroScene';
 
 const STATS = [
-  { v: '+40%', l: 'Backend throughput' },
-  { v: '99.9%', l: 'Uptime delivered' },
-  { v: '10K+', l: 'End users served' },
-  { v: '-25%', l: 'Tech debt reduced' },
+  { id: 'throughput', v: '+40%', l: 'Backend throughput' },
+  { id: 'uptime', v: '99.9%', l: 'Uptime delivered' },
+  { id: 'users', v: '10K+', l: 'End users served' },
+  { id: 'debt', v: '-25%', l: 'Tech debt reduced' },
 ];
+
+function StatTile({ stat, index }) {
+  const borderClasses = [
+    index !== 0 ? 'border-l hairline' : '',
+    index >= 2 ? 'md:border-l' : '',
+    index === 2 ? 'border-t md:border-t-0' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+  return (
+    <div data-testid={`hero-stat-${stat.id}`} className={`py-6 md:py-8 ${borderClasses}`}>
+      <div className="font-display font-extrabold text-3xl md:text-5xl text-white tracking-tightest">
+        {stat.v}
+      </div>
+      <div className="mono-label mt-2">{stat.l}</div>
+    </div>
+  );
+}
 
 export default function Hero() {
   const scrollTo = (id) => {
@@ -31,7 +49,7 @@ export default function Hero() {
       {/* Top meta strip */}
       <div className="relative z-10 pt-24 md:pt-28">
         <div className="max-w-[1600px] mx-auto px-6 md:px-12 lg:px-20 flex items-center justify-between mono-label">
-          <span>// Senior Software Engineer · Coforge</span>
+          <span>{'// Senior Software Engineer · Coforge'}</span>
           <span className="hidden md:inline">New Delhi, IN ⟶ Available worldwide</span>
         </div>
       </div>
@@ -93,18 +111,7 @@ export default function Hero() {
       <div className="absolute bottom-0 inset-x-0 z-10 border-t hairline bg-ink/60 backdrop-blur-sm">
         <div className="max-w-[1600px] mx-auto px-6 md:px-12 lg:px-20 grid grid-cols-2 md:grid-cols-4">
           {STATS.map((s, i) => (
-            <div
-              key={i}
-              data-testid={`hero-stat-${i}`}
-              className={`py-6 md:py-8 ${
-                i !== 0 ? 'border-l hairline' : ''
-              } ${i >= 2 ? 'md:border-l' : ''} ${i === 2 ? 'border-t md:border-t-0' : ''}`}
-            >
-              <div className="font-display font-extrabold text-3xl md:text-5xl text-white tracking-tightest">
-                {s.v}
-              </div>
-              <div className="mono-label mt-2">{s.l}</div>
-            </div>
+            <StatTile key={s.id} stat={s} index={i} />
           ))}
         </div>
       </div>

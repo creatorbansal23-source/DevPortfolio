@@ -73,7 +73,7 @@ export default function Skills() {
           data-testid="skills-3d-canvas"
         >
           <div className="absolute top-0 left-0 z-10 mono-label p-4">
-            // tech-constellation.live
+            {'// tech-constellation.live'}
           </div>
           <div className="absolute bottom-0 right-0 z-10 mono-label p-4 text-white/40">
             drag to rotate

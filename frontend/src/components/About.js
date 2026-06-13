@@ -19,7 +19,7 @@ export default function About() {
         <div className="flex animate-marquee whitespace-nowrap">
           {[...TICKER, ...TICKER, ...TICKER].map((t, i) => (
             <span
-              key={i}
+              key={`${t}-${i}`}
               className="mono-label mx-8 text-white/40"
               style={{ fontSize: 13 }}
             >
@@ -78,8 +78,8 @@ export default function About() {
                 { k: 'Experience', v: '4+ years' },
                 { k: 'Current role', v: 'SSE @ Coforge' },
                 { k: 'Open to', v: 'Senior / Lead' },
-              ].map((b, i) => (
-                <div key={i} className="bg-ink p-5">
+              ].map((b) => (
+                <div key={b.k} className="bg-ink p-5">
                   <div className="mono-label">{b.k}</div>
                   <div className="mt-2 text-white font-display text-xl tracking-tight">{b.v}</div>
                 </div>

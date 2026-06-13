@@ -1,7 +1,6 @@
 import React, { Suspense, useMemo, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Text, OrbitControls } from '@react-three/drei';
-import * as THREE from 'three';
 
 /**
  * SkillsConstellation — A rotating spherical cloud where each point is a
@@ -41,9 +40,8 @@ function Constellation() {
 
   return (
     <group ref={group}>
-      {/* connector lines from center create subtle spokes */}
       {positions.map((p, i) => (
-        <line key={`l-${i}`}>
+        <line key={`l-${TECH[i]}`}>
           <bufferGeometry>
             <bufferAttribute
               attach="attributes-position"
@@ -56,7 +54,7 @@ function Constellation() {
         </line>
       ))}
       {positions.map((p, i) => (
-        <group key={`g-${i}`} position={p}>
+        <group key={`g-${TECH[i]}`} position={p}>
           <mesh>
             <sphereGeometry args={[0.04, 12, 12]} />
             <meshBasicMaterial color={i % 5 === 0 ? '#FF3B30' : '#ffffff'} />
