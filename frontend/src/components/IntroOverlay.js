@@ -59,6 +59,16 @@ export default function IntroOverlay() {
     window.__openIntro = () => setOpen(true);
   }, []);
 
+  // Lock body scroll while the overlay is visible
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = open ? 'hidden' : prev || '';
+    return () => {
+      document.body.style.overflow = prev || '';
+    };
+  }, [open]);
+
   const choose = (profile) => {
     setPicked(profile.id);
     window.localStorage.setItem(STORAGE_KEY, profile.id);
