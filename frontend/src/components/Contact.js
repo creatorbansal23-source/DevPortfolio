@@ -161,7 +161,16 @@ export default function Contact() {
       <footer className="border-t hairline">
         <div className="max-w-[1600px] mx-auto px-5 sm:px-8 md:px-12 lg:px-20 py-6 sm:py-8 flex flex-col md:flex-row md:items-center justify-between gap-3 mono-label">
           <div className="text-[10px] sm:text-[11px]">© {new Date().getFullYear()} Deepak Bansal · Built with React Three Fiber</div>
-          <div className="text-white/40 text-[10px] sm:text-[11px]">v1.1 · production · 99.9% uptime</div>
+          <div className="flex items-center gap-4">
+            <button
+              data-testid="footer-replay-intro"
+              onClick={() => typeof window !== 'undefined' && window.__openIntro && window.__openIntro()}
+              className="text-[10px] sm:text-[11px] text-white/50 hover:text-white transition-colors"
+            >
+              ↻ replay intro
+            </button>
+            <div className="text-white/40 text-[10px] sm:text-[11px]">v1.2 · production · 99.9% uptime</div>
+          </div>
         </div>
       </footer>
     </section>

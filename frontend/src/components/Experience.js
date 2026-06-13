@@ -73,19 +73,37 @@ function TimelineItem({ role, index }) {
   );
 }
 
-function AwardRow({ award }) {
+function AwardRow({ award, rank }) {
   const Icon = award.icon;
   return (
     <div
       data-testid={`award-item-${award.id}`}
-      className="flex items-start gap-5 pb-5 border-b hairline last:border-0 last:pb-0"
+      className="relative flex items-end gap-4 sm:gap-6 pl-2 sm:pl-4 pb-6 border-b hairline last:border-0 last:pb-0 overflow-hidden"
     >
-      <Icon size={22} className="text-accent mt-1 shrink-0" />
-      <div className="flex-1">
-        <div className="font-display text-white text-xl tracking-tight">{award.name}</div>
-        <div className="mono-label mt-1">{award.issuer}</div>
+      {/* Netflix-style giant rank numeral */}
+      <div
+        aria-hidden="true"
+        className="font-display font-extrabold leading-none select-none shrink-0"
+        style={{
+          fontSize: 'clamp(64px, 12vw, 128px)',
+          color: 'transparent',
+          WebkitTextStroke: '2px rgba(255,255,255,0.18)',
+          lineHeight: 0.85,
+          letterSpacing: '-0.04em',
+        }}
+      >
+        {String(rank).padStart(2, '0')}
       </div>
-      <div className="mono-label text-white/50 shrink-0">{award.date}</div>
+      <div className="flex-1 min-w-0 pb-1">
+        <div className="flex items-center gap-3">
+          <Icon size={18} className="text-accent shrink-0" />
+          <div className="mono-label">{award.issuer}</div>
+        </div>
+        <div className="mt-1 font-display text-white text-xl sm:text-2xl tracking-tight leading-tight">
+          {award.name}
+        </div>
+      </div>
+      <div className="mono-label text-white/50 shrink-0 pb-1">{award.date}</div>
     </div>
   );
 }
@@ -117,10 +135,13 @@ export default function Experience() {
 
         <div className="mt-14 sm:mt-16 grid grid-cols-12 gap-px bg-line border hairline">
           <div className="col-span-12 md:col-span-8 bg-ink p-6 sm:p-8 md:p-10">
-            <div className="mono-label text-accent mb-5 sm:mb-6">{'// awards & recognition'}</div>
-            <div className="space-y-5">
-              {AWARDS.map((a) => (
-                <AwardRow key={a.id} award={a} />
+            <div className="flex items-center justify-between mb-5 sm:mb-6">
+              <div className="mono-label text-accent">{'// top 3 recognitions'}</div>
+              <span className="mono-label px-2 py-1 bg-accent text-white" style={{ fontSize: 9 }}>TOP 3</span>
+            </div>
+            <div className="space-y-6">
+              {AWARDS.map((a, i) => (
+                <AwardRow key={a.id} award={a} rank={i + 1} />
               ))}
             </div>
           </div>
