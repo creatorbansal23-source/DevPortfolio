@@ -33,7 +33,7 @@ export default function Nav() {
         scrolled ? 'bg-ink/80 backdrop-blur-md border-b hairline' : 'bg-transparent'
       }`}
     >
-      <div className="max-w-[1600px] mx-auto px-6 md:px-12 lg:px-20 h-16 flex items-center justify-between">
+      <div className="max-w-[1600px] mx-auto px-5 sm:px-8 md:px-12 lg:px-20 h-16 flex items-center justify-between">
         <button
           data-testid="nav-logo"
           onClick={() => scrollTo('hero')}

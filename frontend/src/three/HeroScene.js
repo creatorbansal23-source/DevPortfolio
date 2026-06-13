@@ -1,4 +1,4 @@
-import React, { Suspense, useRef, useMemo } from 'react';
+import React, { Suspense, useRef, useMemo, useState, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Float, Line } from '@react-three/drei';
 import * as THREE from 'three';
@@ -84,6 +84,22 @@ function NodeCluster() {
   const group = useRef();
   const nodes = useMemo(() => buildNodes(), []);
   const edges = useMemo(() => buildEdges(nodes), [nodes]);
+  const [scale, setScale] = useState(() =>
+    typeof window !== 'undefined' && window.innerWidth < 768
+      ? 0.4
+      : typeof window !== 'undefined' && window.innerWidth < 1024
+      ? 0.55
+      : 1
+  );
+
+  useEffect(() => {
+    const onResize = () => {
+      const w = window.innerWidth;
+      setScale(w < 768 ? 0.4 : w < 1024 ? 0.55 : 1);
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   useFrame((state, delta) => {
     if (!group.current) return;
@@ -92,7 +108,7 @@ function NodeCluster() {
   });
 
   return (
-    <group ref={group}>
+    <group ref={group} scale={scale}>
       {edges.map((e) => (
         <Line
           key={e.key}

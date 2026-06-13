@@ -28,21 +28,21 @@ export default function Skills() {
       data-testid="skills-section"
       className="relative border-b hairline"
     >
-      <div className="max-w-[1600px] mx-auto px-6 md:px-12 lg:px-20 py-20 md:py-28 grid grid-cols-12 gap-10">
+      <div className="max-w-[1600px] mx-auto px-5 sm:px-8 md:px-12 lg:px-20 py-16 sm:py-20 md:py-28 grid grid-cols-12 gap-8 lg:gap-12">
         <div className="col-span-12 lg:col-span-5">
           <p className="mono-label text-accent">[ 03 / Stack ]</p>
-          <h2 className="mt-6 font-display font-extrabold text-white text-4xl md:text-6xl tracking-tightest leading-none">
+          <h2 className="mt-4 sm:mt-6 font-display font-extrabold text-white text-[clamp(2.2rem,6vw,4rem)] tracking-tightest leading-[0.95]">
             The full <br />
             <span className="text-accent">production</span> <br />
             stack.
           </h2>
-          <p className="mt-6 text-white/60 max-w-md">
+          <p className="mt-5 sm:mt-6 text-white/60 max-w-md text-sm sm:text-base">
             Drag the constellation to inspect every technology I ship with —
             from backend frameworks to cloud primitives and the AI tooling
             layered on top.
           </p>
 
-          <div className="mt-10 space-y-8">
+          <div className="mt-8 sm:mt-10 space-y-6 sm:space-y-8">
             {GROUPS.map((g, i) => (
               <motion.div
                 key={g.title}
@@ -57,7 +57,7 @@ export default function Skills() {
                   {g.items.map((s) => (
                     <span
                       key={s}
-                      className="px-3 py-1.5 text-sm border hairline text-white/90 hover:border-white/40 hover:text-white transition-colors"
+                      className="px-2.5 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm border hairline text-white/90 hover:border-white/40 hover:text-white transition-colors"
                     >
                       {s}
                     </span>
@@ -69,13 +69,13 @@ export default function Skills() {
         </div>
 
         <div
-          className="col-span-12 lg:col-span-7 h-[520px] md:h-[680px] border hairline relative"
+          className="col-span-12 lg:col-span-7 h-[360px] sm:h-[460px] md:h-[560px] lg:h-[680px] border hairline relative order-first lg:order-none"
           data-testid="skills-3d-canvas"
         >
-          <div className="absolute top-0 left-0 z-10 mono-label p-4">
+          <div className="absolute top-0 left-0 z-10 mono-label p-3 sm:p-4 text-[10px] sm:text-[11px]">
             {'// tech-constellation.live'}
           </div>
-          <div className="absolute bottom-0 right-0 z-10 mono-label p-4 text-white/40">
+          <div className="absolute bottom-0 right-0 z-10 mono-label p-3 sm:p-4 text-white/40 text-[10px] sm:text-[11px]">
             drag to rotate
           </div>
           <SkillsConstellation />

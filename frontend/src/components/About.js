@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import WhoamiTerminal from './WhoamiTerminal';
 
 const TICKER = [
   'C#', '.NET CORE', 'ASP.NET CORE', 'AZURE', 'COSMOS DB', 'MICROSERVICES',
@@ -14,32 +15,33 @@ export default function About() {
       data-testid="about-section"
       className="relative border-b hairline"
     >
-      {/* Ticker */}
-      <div className="overflow-hidden border-b hairline py-4 bg-ink">
+      {/* Refined ticker — thinner, slower, more elegant */}
+      <div className="overflow-hidden border-b hairline py-3 bg-ink">
         <div className="flex animate-marquee whitespace-nowrap">
           {[...TICKER, ...TICKER, ...TICKER].map((t, i) => (
             <span
               key={`${t}-${i}`}
-              className="mono-label mx-8 text-white/40"
-              style={{ fontSize: 13 }}
+              className="mono-label mx-6 sm:mx-8 text-white/35"
+              style={{ fontSize: 11 }}
             >
-              {t} <span className="text-accent ml-8">/</span>
+              {t}
+              <span className="text-accent/60 ml-6 sm:ml-8">/</span>
             </span>
           ))}
         </div>
       </div>
 
-      <div className="max-w-[1600px] mx-auto px-6 md:px-12 lg:px-20 py-20 md:py-32 grid grid-cols-12 gap-8">
+      <div className="max-w-[1600px] mx-auto px-5 sm:px-8 md:px-12 lg:px-20 py-16 sm:py-20 md:py-28 lg:py-32 grid grid-cols-12 gap-8 lg:gap-12">
         <div className="col-span-12 md:col-span-4">
           <p className="mono-label text-accent">[ 02 / About ]</p>
-          <h2 className="mt-6 font-display font-extrabold text-white text-4xl md:text-6xl tracking-tightest leading-none">
+          <h2 className="mt-4 sm:mt-6 font-display font-extrabold text-white text-[clamp(2.2rem,6vw,4rem)] tracking-tightest leading-[0.95]">
             Engineer. <br />
             Architect. <br />
             <span className="text-accent">Shipper.</span>
           </h2>
         </div>
 
-        <div className="col-span-12 md:col-span-7 md:col-start-6">
+        <div className="col-span-12 md:col-span-8 md:col-start-5">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -47,11 +49,11 @@ export default function About() {
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             data-testid="about-narrative"
           >
-            <p className="text-white text-2xl md:text-3xl leading-snug font-display tracking-tight">
+            <p className="text-white text-xl sm:text-2xl md:text-3xl leading-snug font-display tracking-tight">
               For four years I've been the engineer behind the systems that
               don't make headlines — the ones that just <em className="not-italic text-accent">stay up</em>.
             </p>
-            <div className="mt-8 space-y-5 text-white/70 text-base md:text-lg leading-relaxed">
+            <div className="mt-6 sm:mt-8 space-y-4 sm:space-y-5 text-white/70 text-sm sm:text-base md:text-lg leading-relaxed">
               <p>
                 I work at <span className="text-white">Coforge</span> as a Senior Software Engineer,
                 building <span className="text-white">ASP.NET Core REST APIs and microservices</span> for
@@ -72,18 +74,9 @@ export default function About() {
               </p>
             </div>
 
-            <div className="mt-10 grid grid-cols-2 gap-px bg-line">
-              {[
-                { k: 'Based in', v: 'New Delhi, IN' },
-                { k: 'Experience', v: '4+ years' },
-                { k: 'Current role', v: 'SSE @ Coforge' },
-                { k: 'Open to', v: 'Senior / Lead' },
-              ].map((b) => (
-                <div key={b.k} className="bg-ink p-5">
-                  <div className="mono-label">{b.k}</div>
-                  <div className="mt-2 text-white font-display text-xl tracking-tight">{b.v}</div>
-                </div>
-              ))}
+            {/* Creative replacement for the 2x2 info tiles */}
+            <div className="mt-8 sm:mt-10">
+              <WhoamiTerminal />
             </div>
           </motion.div>
         </div>

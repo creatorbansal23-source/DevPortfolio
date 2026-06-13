@@ -43,23 +43,26 @@ function TimelineItem({ role, index }) {
       whileInView={{ opacity: 1, x: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.7, delay: index * 0.1 }}
-      className="col-span-12 md:col-start-2 md:col-span-11 relative pb-14"
+      className="col-span-12 md:col-start-2 md:col-span-11 relative pb-10 sm:pb-14"
     >
+      {/* mobile node (absolute on the mobile vertical line) */}
+      <div className="md:hidden absolute -left-[18px] top-2 w-2 h-2 border-2 border-accent bg-ink" />
+      {/* desktop node */}
       <div className="hidden md:block absolute -left-12 top-2 w-3 h-3 border-2 border-accent bg-ink" />
-      <div className="grid grid-cols-12 gap-6">
+      <div className="grid grid-cols-12 gap-4 sm:gap-6">
         <div className="col-span-12 md:col-span-3">
           <div className="mono-label text-accent">{role.period}</div>
-          <div className="mt-2 mono-label text-white/40">{role.location}</div>
+          <div className="mt-1 sm:mt-2 mono-label text-white/40">{role.location}</div>
         </div>
         <div className="col-span-12 md:col-span-9">
-          <h3 className="font-display font-extrabold text-white text-3xl md:text-4xl tracking-tight">
+          <h3 className="font-display font-extrabold text-white text-2xl sm:text-3xl md:text-4xl tracking-tight">
             {role.title}
           </h3>
           <div className="mt-1 text-white/60 mono-label">{role.company}</div>
-          <ul className="mt-5 space-y-3">
+          <ul className="mt-4 sm:mt-5 space-y-3">
             {role.bullets.map((b) => (
-              <li key={b.id} className="flex gap-4 text-white/75 leading-relaxed">
-                <span className="text-accent mt-1.5">▸</span>
+              <li key={b.id} className="flex gap-3 sm:gap-4 text-white/75 text-sm sm:text-base leading-relaxed">
+                <span className="text-accent mt-1.5 shrink-0">▸</span>
                 <span>{b.text}</span>
               </li>
             ))}
@@ -94,35 +97,35 @@ export default function Experience() {
       data-testid="experience-section"
       className="relative border-b hairline"
     >
-      <div className="max-w-[1600px] mx-auto px-6 md:px-12 lg:px-20 py-20 md:py-28">
-        <div className="grid grid-cols-12 gap-8 mb-14">
+      <div className="max-w-[1600px] mx-auto px-5 sm:px-8 md:px-12 lg:px-20 py-16 sm:py-20 md:py-28">
+        <div className="grid grid-cols-12 gap-8 mb-10 sm:mb-14">
           <div className="col-span-12 md:col-span-7">
             <p className="mono-label text-accent">[ 05 / Trajectory ]</p>
-            <h2 className="mt-6 font-display font-extrabold text-white text-4xl md:text-6xl tracking-tightest leading-none">
+            <h2 className="mt-4 sm:mt-6 font-display font-extrabold text-white text-[clamp(2.2rem,6vw,4rem)] tracking-tightest leading-[0.95]">
               Where I've <br />
               <span className="text-accent">delivered.</span>
             </h2>
           </div>
         </div>
 
-        <div className="relative grid grid-cols-12 gap-6" data-testid="experience-timeline">
-          <div className="hidden md:block absolute top-0 bottom-0 left-[8.333%] w-px bg-line" />
+        <div className="relative grid grid-cols-12 gap-4 sm:gap-6 pl-6 md:pl-0" data-testid="experience-timeline">
+          <div className="absolute top-1 bottom-0 left-1.5 md:left-[8.333%] w-px bg-line" />
           {EXPERIENCE.map((e, i) => (
             <TimelineItem key={e.id} role={e} index={i} />
           ))}
         </div>
 
-        <div className="mt-16 grid grid-cols-12 gap-px bg-line border hairline">
-          <div className="col-span-12 md:col-span-8 bg-ink p-8 md:p-10">
-            <div className="mono-label text-accent mb-6">{'// awards & recognition'}</div>
+        <div className="mt-14 sm:mt-16 grid grid-cols-12 gap-px bg-line border hairline">
+          <div className="col-span-12 md:col-span-8 bg-ink p-6 sm:p-8 md:p-10">
+            <div className="mono-label text-accent mb-5 sm:mb-6">{'// awards & recognition'}</div>
             <div className="space-y-5">
               {AWARDS.map((a) => (
                 <AwardRow key={a.id} award={a} />
               ))}
             </div>
           </div>
-          <div className="col-span-12 md:col-span-4 bg-ink p-8 md:p-10">
-            <div className="mono-label text-accent mb-6">{'// education'}</div>
+          <div className="col-span-12 md:col-span-4 bg-ink p-6 sm:p-8 md:p-10">
+            <div className="mono-label text-accent mb-5 sm:mb-6">{'// education'}</div>
             <div className="flex items-start gap-4">
               <GraduationCap size={22} className="text-accent mt-1 shrink-0" />
               <div>

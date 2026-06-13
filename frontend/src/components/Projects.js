@@ -59,18 +59,18 @@ function ProjectCard({ project, index }) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-50px' }}
       transition={{ duration: 0.6, delay: index * 0.06, ease: [0.16, 1, 0.3, 1] }}
-      className="group col-span-12 md:col-span-6 bg-ink p-8 md:p-10 hover:bg-[#0d0d0d] transition-colors relative"
+      className="group col-span-12 md:col-span-6 bg-ink p-6 sm:p-8 md:p-10 hover:bg-[#0d0d0d] transition-colors relative"
     >
-      <div className="flex items-start justify-between gap-6">
-        <div className="flex-1">
+      <div className="flex items-start justify-between gap-4 sm:gap-6">
+        <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 mono-label">
             <span className="text-white/40">{String(index + 1).padStart(2, '0')}</span>
             {p.language && <span className="text-accent">{p.language}</span>}
           </div>
-          <h3 className="mt-4 font-display font-extrabold text-white text-3xl md:text-4xl tracking-tight">
+          <h3 className="mt-3 sm:mt-4 font-display font-extrabold text-white text-2xl sm:text-3xl md:text-4xl tracking-tight break-words">
             {p.name}
           </h3>
-          <p className="mt-3 text-white/65 max-w-xl">{p.blurb}</p>
+          <p className="mt-2 sm:mt-3 text-white/65 max-w-xl text-sm sm:text-base">{p.blurb}</p>
           <div className="mt-6 flex flex-wrap gap-2">
             {p.stack.map((s) => (
               <span key={s} className="px-2.5 py-1 text-xs border hairline text-white/80">
@@ -112,17 +112,17 @@ export default function Projects() {
 
   return (
     <section id="projects" data-testid="projects-section" className="relative border-b hairline">
-      <div className="max-w-[1600px] mx-auto px-6 md:px-12 lg:px-20 py-20 md:py-28">
-        <div className="grid grid-cols-12 gap-8 mb-14">
+      <div className="max-w-[1600px] mx-auto px-5 sm:px-8 md:px-12 lg:px-20 py-16 sm:py-20 md:py-28">
+        <div className="grid grid-cols-12 gap-8 mb-10 sm:mb-14">
           <div className="col-span-12 md:col-span-7">
             <p className="mono-label text-accent">[ 04 / Selected work ]</p>
-            <h2 className="mt-6 font-display font-extrabold text-white text-4xl md:text-6xl tracking-tightest leading-none">
+            <h2 className="mt-4 sm:mt-6 font-display font-extrabold text-white text-[clamp(2.2rem,6vw,4rem)] tracking-tightest leading-[0.95]">
               Things I've <br />
               <span className="text-accent">built &amp; shipped.</span>
             </h2>
           </div>
           <div className="col-span-12 md:col-span-5 flex items-end">
-            <p className="text-white/60">
+            <p className="text-white/60 text-sm sm:text-base">
               A mix of production work, side projects, and explorations. Pulled live from GitHub —
               click any card to view source.
             </p>
