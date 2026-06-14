@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import WhoamiTerminal from './WhoamiTerminal';
+import { useProfile } from '../hooks/useProfile';
 
 const TICKER = [
   'C#', '.NET CORE', 'ASP.NET CORE', 'AZURE', 'COSMOS DB', 'MICROSERVICES',
@@ -9,6 +10,41 @@ const TICKER = [
 ];
 
 export default function About() {
+  const { profile } = useProfile();
+
+  const tickerItems = profile?.skills?.flatMap((g) => g.items).map((item) => item.toUpperCase()) || TICKER;
+
+  const renderSummary = () => {
+    if (!profile || !profile.summary) {
+      return (
+        <>
+          <p>
+            I work at <span className="text-white">Coforge</span> as a Senior Software Engineer,
+            building <span className="text-white">ASP.NET Core REST APIs and microservices</span> for
+            UK housing portals that serve 10,000+ end users every day. My focus
+            is throughput, latency, and the quiet rigor of code that ages well.
+          </p>
+          <p>
+            Lately I'm bringing <span className="text-white">AI-enabled automation</span> into the
+            stack with <span className="text-white">Copilot Studio</span> and{' '}
+            <span className="text-white">Microsoft AI Foundry</span> — connecting bot services
+            to business workflows so teams ship faster.
+          </p>
+          <p>
+            On the human side: I led <span className="text-white">SonarQube</span> adoption
+            across our .NET and React codebases, cut technical debt by{' '}
+            <span className="text-white">25%</span>, and partnered with UK product teams in
+            Agile sprints. Got the awards to show for it.
+          </p>
+        </>
+      );
+    }
+    const paras = profile.summary.split('\n\n');
+    return paras.map((p, idx) => (
+      <p key={idx}>{p}</p>
+    ));
+  };
+
   return (
     <section
       id="about"
@@ -16,9 +52,9 @@ export default function About() {
       className="relative border-b hairline"
     >
       {/* Refined ticker — thinner, slower, more elegant */}
-      <div className="overflow-hidden border-b hairline py-3 bg-ink">
+      <div className="overflow-hidden border-b hairline py-3 bg-[#121212]/75 backdrop-blur-md">
         <div className="flex animate-marquee whitespace-nowrap">
-          {[...TICKER, ...TICKER, ...TICKER].map((t, i) => (
+          {[...tickerItems, ...tickerItems, ...tickerItems].map((t, i) => (
             <span
               key={`${t}-${i}`}
               className="mono-label mx-6 sm:mx-8 text-white/35"
@@ -54,29 +90,12 @@ export default function About() {
               don't make headlines — the ones that just <em className="not-italic text-accent">stay up</em>.
             </p>
             <div className="mt-6 sm:mt-8 space-y-4 sm:space-y-5 text-white/70 text-sm sm:text-base md:text-lg leading-relaxed">
-              <p>
-                I work at <span className="text-white">Coforge</span> as a Senior Software Engineer,
-                building <span className="text-white">ASP.NET Core REST APIs and microservices</span> for
-                UK housing portals that serve 10,000+ end users every day. My focus
-                is throughput, latency, and the quiet rigor of code that ages well.
-              </p>
-              <p>
-                Lately I'm bringing <span className="text-white">AI-enabled automation</span> into the
-                stack with <span className="text-white">Copilot Studio</span> and{' '}
-                <span className="text-white">Microsoft AI Foundry</span> — connecting bot services
-                to business workflows so teams ship faster.
-              </p>
-              <p>
-                On the human side: I led <span className="text-white">SonarQube</span> adoption
-                across our .NET and React codebases, cut technical debt by{' '}
-                <span className="text-white">25%</span>, and partnered with UK product teams in
-                Agile sprints. Got the awards to show for it.
-              </p>
+              {renderSummary()}
             </div>
 
             {/* Creative replacement for the 2x2 info tiles */}
             <div className="mt-8 sm:mt-10">
-              <WhoamiTerminal />
+              <WhoamiTerminal profile={profile} />
             </div>
           </motion.div>
         </div>
@@ -84,3 +103,4 @@ export default function About() {
     </section>
   );
 }
+

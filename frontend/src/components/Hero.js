@@ -1,8 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowDown, Github, Mail } from 'lucide-react';
-import HeroScene from '../three/HeroScene';
 import AnimatedCounter from './AnimatedCounter';
+import { useProfile } from '../hooks/useProfile';
 
 const STATS = [
   { id: 'throughput', value: 40, prefix: '+', suffix: '%', label: 'Backend throughput' },
@@ -10,6 +10,16 @@ const STATS = [
   { id: 'users', value: 10000, suffix: '+', label: 'End users served' },
   { id: 'debt', value: 25, prefix: '-', suffix: '%', label: 'Tech debt reduced' },
 ];
+
+function parseStat(s, index) {
+  const valStr = s.value.replace(/[^0-9.]/g, '');
+  const value = parseFloat(valStr) || 0;
+  const prefix = s.value.startsWith('+') ? '+' : s.value.startsWith('-') ? '-' : '';
+  const suffix = s.value.endsWith('%') ? '%' : s.value.endsWith('+') ? '+' : '';
+  const id = s.label?.toLowerCase().replace(/\s+/g, '-') || `stat-${index}`;
+  return { id, value, prefix, suffix, label: s.label };
+}
+
 
 function KPI({ stat }) {
   return (
@@ -25,7 +35,7 @@ function KPI({ stat }) {
   );
 }
 
-function LiveStatusPill() {
+function LiveStatusPill({ company, year }) {
   return (
     <div
       data-testid="hero-status-pill"
@@ -35,16 +45,28 @@ function LiveStatusPill() {
         <span className="absolute inset-0 rounded-full bg-accent opacity-60 animate-ping" />
         <span className="relative w-2 h-2 rounded-full bg-accent" />
       </span>
-      <span className="mono-label text-white">SHIPPING · COFORGE · 2026</span>
+      <span className="mono-label text-white">SHIPPING · {company || 'COFORGE'} · {year || '2026'}</span>
     </div>
   );
 }
 
 export default function Hero() {
+  const { profile } = useProfile();
+
   const scrollTo = (id) => {
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
+
+  const currentExp = profile?.experience?.[0];
+  const currentCompany = currentExp ? currentExp.company.toUpperCase() : 'COFORGE';
+  const currentYear = currentExp ? currentExp.period.split(' ')[0] : '2026';
+
+  const nameParts = (profile?.name || 'Deepak Bansal').toUpperCase().split(' ');
+  const firstName = nameParts[0] || 'DEEPAK';
+  const lastName = nameParts.slice(1).join(' ') || 'BANSAL';
+
+  const statsList = profile?.stats?.map(parseStat) || STATS;
 
   return (
     <section
@@ -52,27 +74,11 @@ export default function Hero() {
       data-testid="hero-section"
       className="relative min-h-[100svh] w-full overflow-hidden border-b hairline flex flex-col"
     >
-      {/* 3D background canvas — desktop only; smaller screens get the clean grid fallback for legibility */}
-      <div className="absolute inset-0 hidden lg:block">
-        <HeroScene />
-      </div>
-      <div className="absolute inset-0 bg-gradient-to-br from-ink/85 via-ink/55 to-ink lg:from-ink/55 lg:via-ink/35 lg:to-ink pointer-events-none" />
-      {/* Decorative grid for non-desktop fallback */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 lg:hidden opacity-[0.06] pointer-events-none"
-        style={{
-          backgroundImage:
-            'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)',
-          backgroundSize: '40px 40px',
-        }}
-      />
-
       {/* Top meta — wraps cleanly on small screens */}
       <div className="relative z-10 pt-20 sm:pt-24 md:pt-28">
         <div className="max-w-[1600px] mx-auto px-5 sm:px-8 md:px-12 lg:px-20 flex flex-wrap items-center justify-between gap-3">
-          <LiveStatusPill />
-          <span className="mono-label hidden md:inline">New Delhi, IN ⟶ available worldwide</span>
+          <LiveStatusPill company={currentCompany} year={currentYear} />
+          <span className="mono-label hidden md:inline">{profile?.location || 'New Delhi, IN'} ⟶ available worldwide</span>
         </div>
       </div>
 
@@ -88,16 +94,20 @@ export default function Hero() {
             data-testid="hero-headline"
             className="font-display font-extrabold tracking-tightest text-white text-[clamp(2.4rem,9vw,7rem)] leading-[0.92]"
           >
-            DEEPAK <br />
-            BANSAL<span className="text-accent">.</span>
+            {firstName} <br />
+            {lastName}<span className="text-accent">.</span>
           </h1>
           <div className="mt-6 sm:mt-8 max-w-2xl">
             <p className="text-white/75 text-base sm:text-lg md:text-xl leading-relaxed">
-              I build scalable backend systems and AI-enabled services in{' '}
-              <span className="text-white">C# / .NET</span> on{' '}
-              <span className="text-white">Azure</span>. Currently shipping APIs that
-              power UK housing portals for <span className="text-white">10,000+</span>{' '}
-              end users.
+              {profile?.summary || (
+                <>
+                  I build scalable backend systems and AI-enabled services in{' '}
+                  <span className="text-white">C# / .NET</span> on{' '}
+                  <span className="text-white">Azure</span>. Currently shipping APIs that
+                  power UK housing portals for <span className="text-white">10,000+</span>{' '}
+                  end users.
+                </>
+              )}
             </p>
           </div>
 
@@ -111,10 +121,10 @@ export default function Hero() {
             </button>
             <a
               data-testid="hero-github-link"
-              href="https://github.com/creatorbansal23-source"
+              href={profile?.social?.github || "https://github.com/creatorbansal23-source"}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 px-5 sm:px-6 py-3 border hairline bg-ink/70 text-white hover:bg-ink hover:border-white/60 transition-colors text-sm sm:text-base"
+              className="inline-flex items-center gap-2 px-5 sm:px-6 py-3 border hairline bg-[#121212]/70 backdrop-blur-sm text-white hover:bg-[#1c1c1c]/85 hover:border-white/60 transition-colors text-sm sm:text-base"
             >
               <Github size={16} /> View GitHub
             </a>
@@ -129,19 +139,20 @@ export default function Hero() {
         </motion.div>
       </div>
 
-      {/* In-flow editorial KPI rail (replaces previous absolute bento) */}
+      {/* In-flow editorial KPI rail */}
       <div className="relative z-10 mt-12 sm:mt-16 md:mt-20 border-t hairline">
-        <div className="max-w-[1600px] mx-auto px-5 sm:px-8 md:px-12 lg:px-20 py-6 sm:py-8 md:py-10">
+        <div className="max-w-[1600px] mx-auto px-5 sm:px-8 md:px-12 lg:px-20 py-6 sm:py-8 md:py-10 backdrop-blur-sm">
           <div className="mono-label text-white/40 mb-4 sm:mb-6">
             ▸ measured impact, last 24 months
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 md:gap-10">
-            {STATS.map((s) => (
+            {statsList.map((s) => (
               <KPI key={s.id} stat={s} />
             ))}
           </div>
         </div>
       </div>
+
 
       {/* Scroll cue — desktop only */}
       <div className="hidden lg:flex absolute right-8 top-1/2 -translate-y-1/2 z-10 flex-col items-center gap-3 text-white/40">

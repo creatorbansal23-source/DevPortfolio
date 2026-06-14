@@ -37,7 +37,7 @@ export default function ContactSignal() {
       </div>
 
       {/* Now-shipping rotator */}
-      <div className="mt-6 border hairline p-5 bg-[#0a0a0a]">
+      <div className="mt-6 border hairline p-5 bg-[#121212]/75 backdrop-blur-md">
         <div className="mono-label text-white/40 mb-2">NOW SHIPPING</div>
         <div className="font-display text-white text-lg sm:text-xl tracking-tight min-h-[1.75rem]">
           <span key={focusIdx} className="block animate-[fadeIn_0.5s_ease-out]">

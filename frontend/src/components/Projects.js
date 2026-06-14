@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Github, ExternalLink, Star, GitFork } from 'lucide-react';
 import { useGithubRepos } from '../hooks/useGithubRepos';
+import { useProfile } from '../hooks/useProfile';
 
 const FEATURED = [
   {
@@ -35,11 +36,11 @@ function mergeWithLive(featured, repos) {
     const live = repos.find((r) => r.name?.toLowerCase() === f.key.toLowerCase());
     return {
       key: f.key,
-      name: live?.name || f.key,
+      name: live?.name || f.name || f.key,
       blurb: live?.description || f.blurb,
       stack: live?.topics?.length ? live.topics.slice(0, 4) : f.stack,
       language: live?.language,
-      url: live?.html_url || `https://github.com/creatorbansal23-source/${f.key}`,
+      url: live?.html_url || f.url || `https://github.com/creatorbansal23-source/${f.key}`,
       stars: live?.stargazers_count ?? 0,
       forks: live?.forks_count ?? 0,
       accent: f.accent,
@@ -59,7 +60,7 @@ function ProjectCard({ project, index }) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-50px' }}
       transition={{ duration: 0.6, delay: index * 0.06, ease: [0.16, 1, 0.3, 1] }}
-      className="group col-span-12 md:col-span-6 bg-ink p-6 sm:p-8 md:p-10 hover:bg-[#0d0d0d] transition-colors relative"
+      className="group col-span-12 md:col-span-6 bg-[#121212]/75 backdrop-blur-md p-6 sm:p-8 md:p-10 hover:bg-[#1c1c1c]/85 transition-colors relative"
     >
       <div className="flex items-start justify-between gap-4 sm:gap-6">
         <div className="flex-1 min-w-0">
@@ -107,8 +108,20 @@ function ProjectCard({ project, index }) {
 }
 
 export default function Projects() {
-  const { repos, loading } = useGithubRepos();
-  const items = mergeWithLive(FEATURED, repos);
+  const { repos, loading: loadingGithub } = useGithubRepos();
+  const { profile, loading: loadingProfile } = useProfile();
+
+  const featuredList = profile?.projects?.map((p) => ({
+    key: p.key,
+    blurb: p.summary,
+    stack: p.stack,
+    accent: p.accent === 'primary' || p.accent === true,
+    name: p.name,
+    url: p.github
+  })) || FEATURED;
+
+  const items = mergeWithLive(featuredList, repos);
+  const loading = loadingGithub || loadingProfile;
 
   return (
     <section id="projects" data-testid="projects-section" className="relative border-b hairline">
@@ -142,3 +155,4 @@ export default function Projects() {
     </section>
   );
 }
+

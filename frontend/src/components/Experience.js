@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Award, GraduationCap, Trophy, Users } from 'lucide-react';
+import { useProfile } from '../hooks/useProfile';
 
 const EXPERIENCE = [
   {
@@ -35,6 +36,14 @@ const AWARDS = [
   { id: 'collab', icon: Users, name: 'Collaborator Award', issuer: 'Coforge', date: 'Mar 2025' },
   { id: 'hack', icon: Award, name: 'Hackathon Winner', issuer: 'Coforge', date: 'Dec 2024' },
 ];
+
+const getAwardIcon = (name) => {
+  const lower = name.toLowerCase();
+  if (lower.includes('pat') || lower.includes('trophy')) return Trophy;
+  if (lower.includes('collaborator') || lower.includes('users')) return Users;
+  return Award;
+};
+
 
 function TimelineItem({ role, index }) {
   return (
@@ -109,6 +118,47 @@ function AwardRow({ award, rank }) {
 }
 
 export default function Experience() {
+  const { profile } = useProfile();
+
+  const experienceList = useMemo(() => {
+    if (!profile?.experience) return EXPERIENCE;
+    return profile.experience.map((exp, idx) => ({
+      id: `${exp.company.toLowerCase()}-${idx}`,
+      period: exp.period,
+      company: exp.company,
+      title: exp.title,
+      location: exp.location,
+      bullets: exp.highlights.map((h, hIdx) => ({
+        id: `${exp.company.toLowerCase()}-${idx}-bullet-${hIdx}`,
+        text: h
+      }))
+    }));
+  }, [profile]);
+
+  const awardsList = useMemo(() => {
+    if (!profile?.awards) return AWARDS;
+    return profile.awards.map((a, idx) => ({
+      id: `award-${idx}`,
+      icon: getAwardIcon(a.name),
+      name: a.name,
+      issuer: a.issuer,
+      date: a.date
+    }));
+  }, [profile]);
+
+  const educationList = useMemo(() => {
+    if (!profile?.education) {
+      return [
+        {
+          degree: 'B.Tech, EECE',
+          institution: 'SRMS CET, Bareilly',
+          year: '2020'
+        }
+      ];
+    }
+    return profile.education;
+  }, [profile]);
+
   return (
     <section
       id="experience"
@@ -128,34 +178,38 @@ export default function Experience() {
 
         <div className="relative grid grid-cols-12 gap-4 sm:gap-6 pl-6 md:pl-0" data-testid="experience-timeline">
           <div className="absolute top-1 bottom-0 left-1.5 md:left-[8.333%] w-px bg-line" />
-          {EXPERIENCE.map((e, i) => (
+          {experienceList.map((e, i) => (
             <TimelineItem key={e.id} role={e} index={i} />
           ))}
         </div>
 
         <div className="mt-14 sm:mt-16 grid grid-cols-12 gap-px bg-line border hairline">
-          <div className="col-span-12 md:col-span-8 bg-ink p-6 sm:p-8 md:p-10">
+          <div className="col-span-12 md:col-span-8 bg-[#121212]/75 backdrop-blur-md p-6 sm:p-8 md:p-10">
             <div className="flex items-center justify-between mb-5 sm:mb-6">
               <div className="mono-label text-accent">{'// top 3 recognitions'}</div>
               <span className="mono-label px-2 py-1 bg-accent text-white" style={{ fontSize: 9 }}>TOP 3</span>
             </div>
             <div className="space-y-6">
-              {AWARDS.map((a, i) => (
+              {awardsList.map((a, i) => (
                 <AwardRow key={a.id} award={a} rank={i + 1} />
               ))}
             </div>
           </div>
-          <div className="col-span-12 md:col-span-4 bg-ink p-6 sm:p-8 md:p-10">
+          <div className="col-span-12 md:col-span-4 bg-[#121212]/75 backdrop-blur-md p-6 sm:p-8 md:p-10">
             <div className="mono-label text-accent mb-5 sm:mb-6">{'// education'}</div>
-            <div className="flex items-start gap-4">
-              <GraduationCap size={22} className="text-accent mt-1 shrink-0" />
-              <div>
-                <div className="font-display text-white text-xl tracking-tight leading-snug">
-                  B.Tech, EECE
+            <div className="space-y-6">
+              {educationList.map((edu, idx) => (
+                <div key={idx} className="flex items-start gap-4">
+                  <GraduationCap size={22} className="text-accent mt-1 shrink-0" />
+                  <div>
+                    <div className="font-display text-white text-xl tracking-tight leading-snug">
+                      {edu.degree}
+                    </div>
+                    <div className="text-white/70 mt-1 text-sm">{edu.institution}</div>
+                    <div className="mono-label mt-3">Graduated {edu.year}</div>
+                  </div>
                 </div>
-                <div className="text-white/70 mt-1 text-sm">SRMS CET, Bareilly</div>
-                <div className="mono-label mt-3">Graduated 2020</div>
-              </div>
+              ))}
             </div>
           </div>
         </div>

@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { Github, Mail, MapPin, Send, Check, AlertCircle } from 'lucide-react';
 import { useContactForm } from '../hooks/useContactForm';
 import ContactSignal from './ContactSignal';
+import { useProfile } from '../hooks/useProfile';
+
 
 function Field({ label, testid, value, onChange, type = 'text', textarea, required }) {
   return (
@@ -36,7 +38,12 @@ function Field({ label, testid, value, onChange, type = 'text', textarea, requir
   );
 }
 
-function ContactInfo() {
+function ContactInfo({ profile }) {
+  const email = profile?.email || 'deepak23bansal1997@gmail.com';
+  const githubUrl = profile?.social?.github || 'https://github.com/creatorbansal23-source';
+  const githubDisplay = githubUrl.replace(/^https?:\/\/(www\.)?/, '');
+  const location = profile?.location || 'New Delhi, India';
+
   return (
     <div className="col-span-12 lg:col-span-6">
       <p className="mono-label text-accent">[ 06 / Contact ]</p>
@@ -52,29 +59,29 @@ function ContactInfo() {
       <div className="mt-8 sm:mt-10 space-y-4 sm:space-y-5">
         <a
           data-testid="contact-email-link"
-          href="mailto:deepak23bansal1997@gmail.com"
+          href={`mailto:${email}`}
           className="flex items-center gap-3 sm:gap-4 group"
         >
           <Mail size={18} className="text-accent shrink-0" />
           <span className="text-white text-base sm:text-lg break-all group-hover:text-accent transition-colors">
-            deepak23bansal1997@gmail.com
+            {email}
           </span>
         </a>
         <a
           data-testid="contact-github-link"
-          href="https://github.com/creatorbansal23-source"
+          href={githubUrl}
           target="_blank"
           rel="noreferrer"
           className="flex items-center gap-3 sm:gap-4 group"
         >
           <Github size={18} className="text-accent shrink-0" />
           <span className="text-white text-base sm:text-lg break-all group-hover:text-accent transition-colors">
-            github.com/creatorbansal23-source
+            {githubDisplay}
           </span>
         </a>
         <div className="flex items-center gap-3 sm:gap-4">
           <MapPin size={18} className="text-accent shrink-0" />
-          <span className="text-white text-base sm:text-lg">New Delhi, India</span>
+          <span className="text-white text-base sm:text-lg">{location}</span>
         </div>
       </div>
 
@@ -82,6 +89,7 @@ function ContactInfo() {
     </div>
   );
 }
+
 
 function StatusBanner({ status, error }) {
   if (status === 'success') {
@@ -119,7 +127,7 @@ function ContactForm() {
     <form
       onSubmit={submit}
       data-testid="contact-form"
-      className="border hairline p-5 sm:p-6 md:p-10 bg-[#0a0a0a]"
+      className="border hairline p-5 sm:p-6 md:p-10 bg-[#121212]/75 backdrop-blur-md"
     >
       <div className="mono-label mb-6 sm:mb-8 text-white/60 text-[10px] sm:text-[11px] break-all">
         {'// contact.submit() — secured · stored · acknowledged'}
@@ -147,11 +155,13 @@ function ContactForm() {
 }
 
 export default function Contact() {
+  const { profile } = useProfile();
+
   return (
     <section id="contact" data-testid="contact-section" className="relative">
       <div className="max-w-[1600px] mx-auto px-5 sm:px-8 md:px-12 lg:px-20 py-16 sm:py-20 md:py-28 lg:py-32">
         <div className="grid grid-cols-12 gap-8 lg:gap-12">
-          <ContactInfo />
+          <ContactInfo profile={profile} />
           <div className="col-span-12 lg:col-span-6">
             <ContactForm />
           </div>
@@ -160,7 +170,7 @@ export default function Contact() {
 
       <footer className="border-t hairline">
         <div className="max-w-[1600px] mx-auto px-5 sm:px-8 md:px-12 lg:px-20 py-6 sm:py-8 flex flex-col md:flex-row md:items-center justify-between gap-3 mono-label">
-          <div className="text-[10px] sm:text-[11px]">© {new Date().getFullYear()} Deepak Bansal · Built with React Three Fiber</div>
+          <div className="text-[10px] sm:text-[11px]">© {new Date().getFullYear()} {profile?.name || 'Deepak Bansal'} · Built with React Three Fiber</div>
           <div className="flex items-center gap-4">
             <button
               data-testid="footer-replay-intro"
@@ -176,3 +186,4 @@ export default function Contact() {
     </section>
   );
 }
+

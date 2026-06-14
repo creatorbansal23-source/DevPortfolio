@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import SkillsConstellation from '../three/SkillsConstellation';
+import { useProfile } from '../hooks/useProfile';
 
 const GROUPS = [
   {
@@ -22,6 +23,13 @@ const GROUPS = [
 ];
 
 export default function Skills() {
+  const { profile } = useProfile();
+
+  const groupsList = profile?.skills?.map((s) => ({
+    title: s.group,
+    items: s.items,
+  })) || GROUPS;
+
   return (
     <section
       id="skills"
@@ -43,7 +51,7 @@ export default function Skills() {
           </p>
 
           <div className="mt-8 sm:mt-10 space-y-6 sm:space-y-8">
-            {GROUPS.map((g, i) => (
+            {groupsList.map((g, i) => (
               <motion.div
                 key={g.title}
                 initial={{ opacity: 0, y: 12 }}
@@ -69,7 +77,8 @@ export default function Skills() {
         </div>
 
         <div
-          className="col-span-12 lg:col-span-7 h-[360px] sm:h-[460px] md:h-[560px] lg:h-[680px] border hairline relative order-first lg:order-none"
+          className="col-span-12 lg:col-span-7 h-[360px] sm:h-[460px] md:h-[560px] lg:h-[680px] border hairline relative order-first lg:order-none backdrop-blur-md overflow-hidden"
+          style={{ backgroundColor: 'rgba(18, 18, 18, 0.75)' }}
           data-testid="skills-3d-canvas"
         >
           <div className="absolute top-0 left-0 z-10 mono-label p-3 sm:p-4 text-[10px] sm:text-[11px]">
@@ -78,8 +87,9 @@ export default function Skills() {
           <div className="absolute bottom-0 right-0 z-10 mono-label p-3 sm:p-4 text-white/40 text-[10px] sm:text-[11px]">
             drag to rotate
           </div>
-          <SkillsConstellation />
+          <SkillsConstellation skills={profile?.skills} />
         </div>
+
       </div>
     </section>
   );

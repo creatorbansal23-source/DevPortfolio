@@ -1,263 +1,309 @@
-import React, { Suspense, useMemo, useRef } from 'react';
+import React, { Suspense, useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Text, OrbitControls } from '@react-three/drei';
+import { Text, OrbitControls, Billboard } from '@react-three/drei';
+import * as THREE from 'three';
 
 const TECH = [
-  'C#', '.NET', 'ASP.NET', 'REST', 'Microservices', 'Azure', 'Functions',
-  'Cosmos DB', 'SQL', 'App Services', 'Service Bus', 'App Insights',
-  'React', 'TypeScript', 'JavaScript', 'SonarQube', 'xUnit', 'MSTest',
-  'Copilot Studio', 'AI Foundry', 'Bot Services', 'Git', 'CI/CD', 'Agile',
+  { name: 'C#', tier: 1 },
+  { name: '.NET Core', tier: 1 },
+  { name: 'ASP.NET', tier: 1 },
+  { name: 'REST APIs', tier: 1 },
+  { name: 'Azure', tier: 1 },
+  { name: 'Cosmos DB', tier: 2 },
+  { name: 'SQL Server', tier: 2 },
+  { name: 'Microservices', tier: 2 },
+  { name: 'Functions', tier: 2 },
+  { name: 'Service Bus', tier: 2 },
+  { name: 'App Insights', tier: 2 },
+  { name: 'SonarQube', tier: 2 },
+  { name: 'xUnit', tier: 3 },
+  { name: 'React', tier: 3 },
+  { name: 'TypeScript', tier: 3 },
+  { name: 'CI/CD', tier: 3 },
+  { name: 'Git', tier: 3 },
+  { name: 'Copilot Studio', tier: 3 },
+  { name: 'AI Foundry', tier: 3 },
+  { name: 'Bot Services', tier: 3 },
 ];
 
-function fibonacciSphere(n, radius) {
+/* Distribute points evenly on a sphere using Fibonacci spiral */
+function fibSphere(count, radius) {
   const points = [];
-  const offset = 2 / n;
-  const increment = Math.PI * (3 - Math.sqrt(5));
-  for (let i = 0; i < n; i++) {
-    const y = i * offset - 1 + offset / 2;
+  const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+  for (let i = 0; i < count; i++) {
+    const y = 1 - (i / (count - 1)) * 2;
     const r = Math.sqrt(1 - y * y);
-    const phi = i * increment;
-    points.push([Math.cos(phi) * r * radius, y * radius, Math.sin(phi) * r * radius]);
+    const theta = goldenAngle * i;
+    points.push([
+      Math.cos(theta) * r * radius,
+      y * radius,
+      Math.sin(theta) * r * radius,
+    ]);
   }
   return points;
 }
 
-/**
- * PulsingCore — animated atomic-nucleus centerpiece.
- * Layers: orbital rings → wireframe shell → faceted inner core → pulsing
- * glow → three electrons orbiting on perpendicular planes.
- */
-function PulsingCore() {
-  const shell = useRef();
-  const innerCore = useRef();
-  const glow = useRef();
-  const halo = useRef();
-  const ring1 = useRef();
-  const ring2 = useRef();
-  const ring3 = useRef();
-  const e1 = useRef();
-  const e2 = useRef();
-  const e3 = useRef();
+/* Build edges between nodes that are close enough */
+function buildEdges(positions, threshold) {
+  const edges = [];
+  for (let i = 0; i < positions.length; i++) {
+    for (let j = i + 1; j < positions.length; j++) {
+      const dx = positions[i][0] - positions[j][0];
+      const dy = positions[i][1] - positions[j][1];
+      const dz = positions[i][2] - positions[j][2];
+      const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+      if (dist < threshold) {
+        edges.push([positions[i], positions[j], dist]);
+      }
+    }
+  }
+  return edges;
+}
+
+/* Pulsing center sphere */
+function CoreGlow() {
+  const ref = useRef();
+  const haloRef = useRef();
 
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
-
-    if (shell.current) {
-      shell.current.rotation.x = t * 0.18;
-      shell.current.rotation.y = t * 0.12;
+    if (ref.current) {
+      const s = 0.28 + Math.sin(t * 1.8) * 0.04;
+      ref.current.scale.setScalar(s);
     }
-    if (innerCore.current) {
-      innerCore.current.rotation.x = -t * 0.32;
-      innerCore.current.rotation.z = t * 0.45;
-    }
-
-    // Glow pulse (sine breathing)
-    const pulse = 1 + Math.sin(t * 2.2) * 0.08;
-    if (glow.current) glow.current.scale.setScalar(pulse);
-    if (halo.current) {
-      const h = 1 + Math.sin(t * 1.8 + 0.6) * 0.18;
-      halo.current.scale.setScalar(h);
-      halo.current.material.opacity = 0.16 + Math.sin(t * 1.8) * 0.06;
-    }
-
-    // Rings counter-rotate
-    if (ring1.current) ring1.current.rotation.z = t * 0.3;
-    if (ring2.current) ring2.current.rotation.x = t * 0.25;
-    if (ring3.current) ring3.current.rotation.y = t * -0.4;
-
-    // Three electrons on perpendicular orbital planes
-    const rA = 0.78;
-    const rB = 0.92;
-    const rC = 0.85;
-    if (e1.current) {
-      e1.current.position.set(Math.cos(t * 1.5) * rA, Math.sin(t * 1.5) * rA, 0);
-    }
-    if (e2.current) {
-      e2.current.position.set(
-        Math.cos(t * 1.15 + 2) * rB,
-        0,
-        Math.sin(t * 1.15 + 2) * rB
-      );
-    }
-    if (e3.current) {
-      e3.current.position.set(
-        0,
-        Math.cos(t * 1.85 + 4) * rC,
-        Math.sin(t * 1.85 + 4) * rC
-      );
+    if (haloRef.current) {
+      const s = 0.6 + Math.sin(t * 1.2) * 0.1;
+      haloRef.current.scale.setScalar(s);
+      haloRef.current.material.opacity = 0.06 + Math.sin(t * 2) * 0.03;
     }
   });
 
   return (
     <group>
-      {/* Orbital rings (thin tori on perpendicular axes) */}
-      <mesh ref={ring1}>
-        <torusGeometry args={[0.78, 0.004, 8, 96]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={0.18} />
+      {/* Inner bright core */}
+      <mesh ref={ref}>
+        <sphereGeometry args={[1, 24, 24]} />
+        <meshBasicMaterial color="#FF3B30" transparent opacity={0.9} />
       </mesh>
-      <mesh ref={ring2} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[0.92, 0.004, 8, 96]} />
-        <meshBasicMaterial color="#FF3B30" transparent opacity={0.28} />
-      </mesh>
-      <mesh ref={ring3} rotation={[0, Math.PI / 2, Math.PI / 4]}>
-        <torusGeometry args={[0.85, 0.004, 8, 96]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={0.14} />
-      </mesh>
-
-      {/* Outer wireframe shell — icosphere */}
-      <mesh ref={shell}>
-        <icosahedronGeometry args={[0.62, 1]} />
-        <meshBasicMaterial color="#ffffff" wireframe transparent opacity={0.22} />
-      </mesh>
-
-      {/* Faceted inner core */}
-      <mesh ref={innerCore}>
-        <octahedronGeometry args={[0.32, 0]} />
-        <meshStandardMaterial
-          color="#0d0d0d"
-          metalness={0.9}
-          roughness={0.15}
-          emissive="#FF3B30"
-          emissiveIntensity={0.35}
-        />
-      </mesh>
-
-      {/* Soft outer halo */}
-      <mesh ref={halo}>
-        <sphereGeometry args={[0.28, 24, 24]} />
-        <meshBasicMaterial color="#FF3B30" transparent opacity={0.18} />
-      </mesh>
-
-      {/* Bright glowing center */}
-      <mesh ref={glow}>
-        <sphereGeometry args={[0.13, 24, 24]} />
-        <meshBasicMaterial color="#FF6B61" />
-      </mesh>
-
-      {/* Three electrons */}
-      <mesh ref={e1}>
-        <sphereGeometry args={[0.055, 12, 12]} />
-        <meshBasicMaterial color="#ffffff" />
-      </mesh>
-      <mesh ref={e2}>
-        <sphereGeometry args={[0.05, 12, 12]} />
-        <meshBasicMaterial color="#FF3B30" />
-      </mesh>
-      <mesh ref={e3}>
-        <sphereGeometry args={[0.045, 12, 12]} />
-        <meshBasicMaterial color="#ffffff" />
+      {/* Outer halo */}
+      <mesh ref={haloRef}>
+        <sphereGeometry args={[1, 24, 24]} />
+        <meshBasicMaterial color="#FF3B30" transparent opacity={0.06} />
       </mesh>
     </group>
   );
 }
 
-/**
- * EnergyLine — a single connector that pulses brightness over time
- * with a per-line phase offset, so the constellation feels alive.
- */
-function EnergyLines({ positions }) {
-  const matsRef = useRef([]);
+/* A single skill node — small sphere + billboard label */
+function SkillNode({ position, name, tier, index }) {
+  const groupRef = useRef();
+  const dotRef = useRef();
+
+  const isCore = tier === 1;
+  const color = isCore ? '#FF3B30' : '#ffffff';
+  const dotSize = isCore ? 0.06 : 0.04;
+
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
-    matsRef.current.forEach((m, i) => {
-      if (!m) return;
-      m.opacity = 0.05 + (Math.sin(t * 1.2 + i * 0.6) * 0.5 + 0.5) * 0.12;
-    });
-  });
-  return (
-    <>
-      {positions.map((p, i) => (
-        <line key={`l-${TECH[i]}`}>
-          <bufferGeometry>
-            <bufferAttribute
-              attach="attributes-position"
-              count={2}
-              array={new Float32Array([0, 0, 0, p[0], p[1], p[2]])}
-              itemSize={3}
-            />
-          </bufferGeometry>
-          <lineBasicMaterial
-            ref={(el) => (matsRef.current[i] = el)}
-            color={i % 5 === 0 ? '#FF3B30' : '#ffffff'}
-            transparent
-            opacity={0.1}
-          />
-        </line>
-      ))}
-    </>
-  );
-}
-
-function TechNode({ position, label, accent, index }) {
-  const dot = useRef();
-  useFrame((state) => {
-    if (!dot.current) return;
-    const s = 1 + Math.sin(state.clock.getElapsedTime() * 1.6 + index * 0.4) * 0.25;
-    dot.current.scale.setScalar(s);
-  });
-  return (
-    <group position={position}>
-      <mesh ref={dot}>
-        <sphereGeometry args={[0.045, 14, 14]} />
-        <meshBasicMaterial color={accent ? '#FF3B30' : '#ffffff'} />
-      </mesh>
-      <Text
-        position={[0.18, 0, 0]}
-        fontSize={0.16}
-        color="#ffffff"
-        anchorX="left"
-        anchorY="middle"
-        outlineWidth={0.005}
-        outlineColor="#050505"
-      >
-        {label}
-      </Text>
-    </group>
-  );
-}
-
-function Constellation() {
-  const group = useRef();
-  const positions = useMemo(() => fibonacciSphere(TECH.length, 2.4), []);
-
-  useFrame((_, delta) => {
-    if (group.current) {
-      group.current.rotation.y += delta * 0.1;
+    if (dotRef.current) {
+      const pulse = 1 + Math.sin(t * 2.5 + index * 0.7) * 0.25;
+      dotRef.current.scale.setScalar(pulse);
     }
   });
 
   return (
-    <group ref={group}>
-      <EnergyLines positions={positions} />
-      {positions.map((p, i) => (
-        <TechNode
-          key={`g-${TECH[i]}`}
-          position={p}
-          label={TECH[i]}
-          accent={i % 5 === 0}
-          index={i}
-        />
-      ))}
-      <PulsingCore />
+    <group ref={groupRef} position={position}>
+      {/* Glowing dot */}
+      <mesh ref={dotRef}>
+        <sphereGeometry args={[dotSize, 12, 12]} />
+        <meshBasicMaterial color={color} />
+      </mesh>
+
+      {/* Outer glow ring */}
+      {isCore && (
+        <mesh>
+          <sphereGeometry args={[0.1, 12, 12]} />
+          <meshBasicMaterial color="#FF3B30" transparent opacity={0.12} />
+        </mesh>
+      )}
+
+      {/* Label — always faces camera */}
+      <Billboard follow lockX={false} lockY={false} lockZ={false}>
+        <Text
+          position={[0, dotSize + 0.14, 0]}
+          fontSize={isCore ? 0.16 : 0.12}
+          color={isCore ? '#FF3B30' : 'rgba(255,255,255,0.75)'}
+          anchorX="center"
+          anchorY="bottom"
+          outlineWidth={0.008}
+          outlineColor="#000000"
+        >
+          {name}
+        </Text>
+      </Billboard>
     </group>
   );
 }
 
-export default function SkillsConstellation() {
+/* Network edges rendered as a single LineSegments for performance */
+function NetworkEdges({ edges }) {
+  const geom = useMemo(() => {
+    const pts = [];
+    const colors = [];
+    const accent = new THREE.Color('#FF3B30');
+    const white = new THREE.Color('#ffffff');
+
+    edges.forEach(([a, b, dist]) => {
+      pts.push(a[0], a[1], a[2], b[0], b[1], b[2]);
+      // Closer edges are brighter
+      const alpha = 1 - dist / 2.8;
+      const c = alpha > 0.5 ? accent.clone().lerp(white, 0.3) : white;
+      colors.push(c.r, c.g, c.b, c.r, c.g, c.b);
+    });
+
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+    geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    return geo;
+  }, [edges]);
+
+  return (
+    <lineSegments geometry={geom}>
+      <lineBasicMaterial vertexColors transparent opacity={0.1} />
+    </lineSegments>
+  );
+}
+
+/* Main constellation group that auto-rotates */
+function Constellation({ techList }) {
+  const groupRef = useRef();
+  const positions = useMemo(() => fibSphere(techList.length, 2.4), [techList]);
+  const edges = useMemo(() => buildEdges(positions, 2.8), [positions]);
+
+  useFrame((state, delta) => {
+    if (groupRef.current) {
+      groupRef.current.rotation.y += delta * 0.06;
+    }
+  });
+
+  return (
+    <group ref={groupRef}>
+      <CoreGlow />
+      <NetworkEdges edges={edges} />
+
+      {/* Connector lines from core to each node */}
+      {positions.map((pos, i) => {
+        const isCore = techList[i] && techList[i].tier === 1;
+        return (
+          <line key={`core-line-${i}`}>
+            <bufferGeometry>
+              <bufferAttribute
+                attach="attributes-position"
+                count={2}
+                array={new Float32Array([0, 0, 0, ...pos])}
+                itemSize={3}
+              />
+            </bufferGeometry>
+            <lineBasicMaterial
+              color={isCore ? '#FF3B30' : '#ffffff'}
+              transparent
+              opacity={isCore ? 0.12 : 0.04}
+            />
+          </line>
+        );
+      })}
+
+      {/* Skill nodes */}
+      {techList.map((tech, i) => (
+        <SkillNode
+          key={tech.name}
+          position={positions[i]}
+          name={tech.name}
+          tier={tech.tier}
+          index={i}
+        />
+      ))}
+    </group>
+  );
+}
+
+/* Floating particle field in background */
+function ParticleField({ count = 120 }) {
+  const pointsRef = useRef();
+
+  const [positions] = useMemo(() => {
+    const pos = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(Math.random() * 2 - 1);
+      const r = 2.8 + Math.random() * 2.5;
+
+      pos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+      pos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+      pos[i * 3 + 2] = r * Math.cos(phi);
+    }
+    return [pos];
+  }, [count]);
+
+  useFrame((state, delta) => {
+    if (pointsRef.current) {
+      pointsRef.current.rotation.y += delta * 0.015;
+      pointsRef.current.rotation.x -= delta * 0.005;
+    }
+  });
+
+  return (
+    <points ref={pointsRef}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          count={count}
+          array={positions}
+          itemSize={3}
+        />
+      </bufferGeometry>
+      <pointsMaterial
+        color="#ffffff"
+        size={0.03}
+        sizeAttenuation={true}
+        transparent
+        opacity={0.2}
+        blending={THREE.AdditiveBlending}
+        depthWrite={false}
+      />
+    </points>
+  );
+}
+
+export default function SkillsConstellation({ skills }) {
+  const techList = useMemo(() => {
+    if (!skills || skills.length === 0) return TECH;
+    const list = [];
+    skills.forEach((group, groupIdx) => {
+      const tier = groupIdx === 0 ? 1 : groupIdx === 1 ? 2 : 3;
+      group.items.forEach((item) => {
+        list.push({ name: item, tier });
+      });
+    });
+    return list;
+  }, [skills]);
+
   return (
     <Canvas
       camera={{ position: [0, 0, 6.5], fov: 45 }}
       dpr={[1, 1.5]}
       gl={{ antialias: true, alpha: true }}
+      style={{ background: 'transparent' }}
     >
-      <color attach="background" args={['#050505']} />
-      <ambientLight intensity={0.5} />
-      <pointLight position={[4, 4, 4]} intensity={0.6} />
-      <pointLight position={[-3, -2, -2]} intensity={0.55} color="#FF3B30" />
-      <pointLight position={[0, 0, 0]} intensity={1.2} color="#FF3B30" distance={3} />
+      <ambientLight intensity={0.4} />
+      <pointLight position={[5, 5, 5]} intensity={0.3} />
+      <pointLight position={[0, 0, 0]} intensity={0.8} color="#FF3B30" distance={4} />
+
       <Suspense fallback={null}>
-        <Constellation />
+        <Constellation techList={techList} />
+        <ParticleField />
       </Suspense>
+
       <OrbitControls
         enablePan={false}
         enableZoom={false}
@@ -269,3 +315,4 @@ export default function SkillsConstellation() {
     </Canvas>
   );
 }
+

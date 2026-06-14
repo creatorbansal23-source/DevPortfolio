@@ -4,55 +4,25 @@ FastAPI + MongoDB. All routes prefixed with /api.
 """
 import os
 import logging
+import smtplib
+import uuid
 from datetime import datetime, timezone
 from typing import Annotated, Any, List, Optional
 
+import anyio
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 import httpx
-from bson import ObjectId
 from dotenv import load_dotenv
 from fastapi import FastAPI, APIRouter, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
-from pydantic import BaseModel, BeforeValidator, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
+
 
 load_dotenv()
 
 logger = logging.getLogger("portfolio")
 logging.basicConfig(level=logging.INFO)
-
-MONGO_URL = os.environ["MONGO_URL"]
-DB_NAME = os.environ["DB_NAME"]
-
-client = AsyncIOMotorClient(MONGO_URL)
-db = client[DB_NAME]
-
-# ---------- Pydantic helpers ----------
-def _coerce_objectid(v: Any) -> str:
-    if isinstance(v, ObjectId):
-        return str(v)
-    if isinstance(v, str):
-        return v
-    raise ValueError("Invalid ObjectId")
-
-PyObjectId = Annotated[str, BeforeValidator(_coerce_objectid)]
-
-
-class BaseDocument(BaseModel):
-    model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
-
-    id: Optional[PyObjectId] = Field(default=None, alias="_id")
-
-    def to_mongo(self) -> dict:
-        data = self.model_dump(by_alias=True, exclude_none=True)
-        data.pop("_id", None)
-        return data
-
-    @classmethod
-    def from_mongo(cls, doc: dict | None):
-        if not doc:
-            return None
-        doc["_id"] = str(doc["_id"])
-        return cls(**doc)
 
 
 # ---------- Models ----------
@@ -63,14 +33,6 @@ class ContactMessageIn(BaseModel):
     message: str = Field(min_length=1, max_length=4000)
 
 
-class ContactMessage(BaseDocument):
-    name: str
-    email: EmailStr
-    subject: Optional[str] = None
-    message: str
-    created_at: str
-
-
 class ContactMessageOut(BaseModel):
     id: str
     name: str
@@ -78,6 +40,7 @@ class ContactMessageOut(BaseModel):
     subject: Optional[str] = None
     message: str
     created_at: str
+
 
 
 # ---------- App + Router ----------
@@ -100,11 +63,8 @@ async def root():
 
 @api.get("/health")
 async def health():
-    try:
-        await db.command("ping")
-        return {"status": "healthy", "db": "connected"}
-    except Exception as e:
-        raise HTTPException(status_code=503, detail=f"db unreachable: {e}")
+    return {"status": "healthy", "db": "disabled"}
+
 
 
 # ---------- Profile (static, content-driven) ----------
@@ -151,10 +111,22 @@ PROFILE = {
     ],
     "experience": [
         {
+            "company": "Bitniti",
+            "location": "Remote",
+            "title": "Full Stack Developer - AI Integrations .Net & Azure",
+            "period": "Mar 2026 — Present",
+            "highlights": [
+                "🔧 Built AI-powered .NET 8 microservices for insurance claims automation — vehicle damage estimation, diary summarization, and email classification using Azure OpenAI and Ollama.",
+                "☁️ Architected dual-provider LLM pipelines with swappable Azure OpenAI (cloud) and Ollama (on-premise) backends, meeting enterprise privacy and cost requirements.",
+                "🔐 Developed secure multi-tenant REST APIs with JWT auth, role-based authorization, tier enforcement, EF Core, and full Swagger documentation.",
+                "🧠 Engineered reliable structured AI outputs using advanced prompt engineering, JSON validation, and hallucination-prevention techniques across high-volume claims workflows.",
+            ],
+        },
+        {
             "company": "Coforge",
             "location": "Greater Noida, IN",
             "title": "Senior Software Engineer",
-            "period": "Jul 2024 — Present",
+            "period": "Jul 2024 — Mar 2026",
             "highlights": [
                 "Architected scalable ASP.NET Core REST APIs and microservices, improving backend throughput by 40% and reducing latency for enterprise workloads.",
                 "Led SonarQube adoption across .NET and React codebases, reducing technical debt by 25% and lifting code-quality standards.",
@@ -184,6 +156,11 @@ PROFILE = {
             "degree": "B.Tech, Electrical, Electronics & Communications Engineering",
             "institution": "SRMS CET, Bareilly",
             "year": "2020",
+        },
+        {
+            "degree": "12th Higher Secondary Certification",
+            "institution": "New Public School, Lucknow",
+            "year": "2015",
         }
     ],
     "projects": [
@@ -219,6 +196,14 @@ PROFILE = {
             "github": "https://github.com/creatorbansal23-source/DevPortfolio",
             "accent": "secondary",
         },
+        {
+            "key": "smart-grievance-redressal-system",
+            "name": "Smart Grievance Redressal System",
+            "summary": "A .NET 8 Azure Worker Service that auto-processes customer complaints in real-time via Service Bus, enriching each complaint with HuggingFace sentiment, custom ML classification, and GPT summarization — then persisting to Cosmos DB and notifying via Mailgun.",
+            "stack": [".NET 8", "Azure Service Bus", "Cosmos DB", "HuggingFace", "OpenAI"],
+            "github": "https://github.com/creatorbansal23-source/bs-complaints.git",
+            "accent": "secondary",
+        }
     ],
 }
 
@@ -288,39 +273,78 @@ async def github_repos():
 
 
 # ---------- Contact form ----------
+def send_contact_email_sync(name: str, email: str, subject: Optional[str], message: str):
+    smtp_host = os.environ["SMTP_HOST"]
+    smtp_port = int(os.environ["SMTP_PORT"])
+    smtp_username = os.environ["SMTP_USERNAME"]
+    smtp_password = os.environ["SMTP_PASSWORD"]
+    from_address = os.environ.get("SMTP_FROM_ADDRESS", smtp_username)
+    from_name = os.environ.get("SMTP_FROM_NAME", "CarDamageEstimatorV2")
+    to_address = os.environ.get("SMTP_TO_ADDRESS", smtp_username)
+
+    msg = MIMEMultipart()
+    msg['From'] = f"{from_name} <{from_address}>"
+    msg['To'] = to_address
+    msg['Subject'] = f"Portfolio Contact: {subject or 'No Subject'}"
+
+    body = f"""New Contact Form Submission:
+
+Name: {name}
+Email: {email}
+Subject: {subject or 'No Subject'}
+
+Message:
+--------------------------------------------------
+{message}
+--------------------------------------------------
+"""
+    msg.attach(MIMEText(body, 'plain'))
+
+    with smtplib.SMTP(smtp_host, smtp_port) as server:
+        server.starttls()
+        server.login(smtp_username, smtp_password)
+        server.send_message(msg)
+
+
 @api.post("/contact", status_code=status.HTTP_201_CREATED, response_model=ContactMessageOut)
 async def submit_contact(payload: ContactMessageIn):
-    doc = {
-        "name": payload.name.strip(),
-        "email": payload.email,
-        "subject": (payload.subject or "").strip() or None,
-        "message": payload.message.strip(),
-        "created_at": datetime.now(timezone.utc).isoformat(),
-    }
-    res = await db.contact_messages.insert_one(doc)
-    return ContactMessageOut(id=str(res.inserted_id), **doc)
+    name = payload.name.strip()
+    email = payload.email
+    subject = (payload.subject or "").strip() or None
+    message = payload.message.strip()
+    created_at = datetime.now(timezone.utc).isoformat()
+
+    try:
+        await anyio.to_thread.run_sync(
+            send_contact_email_sync,
+            name,
+            email,
+            subject,
+            message
+        )
+    except Exception as e:
+        logger.error("Failed to send contact email: %s", e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to send email: {e}"
+        )
+
+    generated_id = str(uuid.uuid4())
+    return ContactMessageOut(
+        id=generated_id,
+        name=name,
+        email=email,
+        subject=subject,
+        message=message,
+        created_at=created_at
+    )
+
 
 
 @api.get("/contact", response_model=List[ContactMessageOut])
 async def list_contact():
-    items: List[ContactMessageOut] = []
-    async for d in db.contact_messages.find().sort("created_at", -1).limit(100):
-        items.append(
-            ContactMessageOut(
-                id=str(d["_id"]),
-                name=d["name"],
-                email=d["email"],
-                subject=d.get("subject"),
-                message=d["message"],
-                created_at=d["created_at"],
-            )
-        )
-    return items
+    return []
 
 
 app.include_router(api)
 
-
-@app.on_event("shutdown")
-async def shutdown():
-    client.close()

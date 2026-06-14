@@ -182,7 +182,7 @@ export default function ContinueWatchingRail() {
           ref={railRef}
           onScroll={updateBounds}
           className="flex gap-4 sm:gap-5 overflow-x-auto snap-x snap-mandatory pb-4 -mx-5 px-5 sm:mx-0 sm:px-0 scroll-smooth"
-          style={{ scrollbarWidth: 'thin' }}
+          style={{ scrollbarWidth: 'none' }}
         >
           {TRACKS.map((t) => (
             <TrackCard key={t.id} track={t} />
