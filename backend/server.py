@@ -185,7 +185,7 @@ PROFILE = {
             "name": "Car Damage Estimator v2",
             "summary": "Image-based estimator that classifies and quantifies vehicle damage from photographs.",
             "stack": ["HTML", "Computer Vision", "Web"],
-            "github": "https://github.com/creatorbansal23-source/CarDamageEstimatorV2",
+            "github": "https://github.com/creatorbansal23-source",
             "accent": "primary",
         },
         {
