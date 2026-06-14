@@ -32,7 +32,9 @@ const PROFILES = [
   },
 ];
 
+// eslint-disable-next-line no-unused-vars
 const STORAGE_KEY = 'deepak-portfolio:intro-seen-v1';
+
 
 function autoScroll(flowIds) {
   if (!flowIds || !flowIds.length) return;
